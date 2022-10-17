@@ -1,88 +1,89 @@
-from django.shortcuts import render, get_object_or_404, redirect, HttpResponseRedirect
-from django.template.defaultfilters import slugify
+from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
-from django.forms import modelformset_factory
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Post, PostImages
 from .forms import PostForm, PostImagesForm
 from taggit.models import Tag
 
 
-def home(request):
-    common_tags = Post.tags.most_common()[:4]
-
-    form = PostForm(request.POST)
-    if form.is_valid():
-        newpost = form.save(commit=False)
-        newpost.slug = slugify(newpost.title)
-        newpost.save()
-        form.save_m2m()
-
-    context = {
-        'posts': Post.objects.all(),
-        'common_tags': common_tags,
-        'form': form
-    }
-    return render(request, 'dgram/home.html', context)
-
 class PostListView(ListView):
     model = Post
     template_name = 'dgram/home.html'
     context_object_name = 'posts'
     ordering = ['-date_posted']
+    paginate_by = 5
 
-def detail_view(request, pk):
-    post = get_object_or_404(Post, id=pk)
-    images = PostImages.objects.filter(post=post)
-    return render(request, 'dgram/post_detail.html', {
-        'post': post,
-        'images': images
-    })
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['common_tags'] = Post.tags.most_common()[:4]
+        #context['image_list'] = Post.images
+        return context
+
+class PostDetailView(LoginRequiredMixin, DetailView):
+    model = Post
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['image_list'] = PostImages.objects.filter(post=self.kwargs['pk']) #PostImages.objects.all()
+        return context
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    #model = Post
+    form_class = PostForm
+    template_name = 'dgram/post_form.html'
+    success_url = '/'
+
+    def form_valid(self, form):
+        files = self.request.FILES.getlist("image")
+        f = form.save(commit=False)
+        f.author = self.request.user
+        f.save()
+        f.tags.add(*form.cleaned_data['tags'])
+        for i in files:
+            PostImages.objects.create(post=f, image=i)
+        messages.success(self.request,
+                         "Post has been added!")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['imageform'] = PostImagesForm()
+        return context
 
 
-@login_required
-def addPostView(request):
-    ImageFormSet = modelformset_factory(PostImages,
-                                        form=PostImagesForm, extra=10)
+#@login_required
+#def addPostView(request):
+    #ImageFormSet = modelformset_factory(PostImages,
+    #                                    form=PostImagesForm, extra=10)
     # 'extra' means the number of photos that you can upload   ^
-    if request.method == 'POST':
+#    if request.method == 'POST':
+#        form = PostForm(request.POST)
+#        files = request.FILES.getlist("image")
+#        if form.is_valid():
+#            f = form.save(commit=False)
+#            f.author = request.user
+#            f.save()
+#            f.tags.add(*form.cleaned_data['tags'])
+#            for i in files:
+#                PostImages.objects.create(post=f, image=i)
+#            messages.success(request,
+#                             "Post has been added!")
+#            return HttpResponseRedirect('/')
 
-        postForm = PostForm(request.POST)
-        formset = ImageFormSet(request.POST, request.FILES,
-                               queryset=PostImages.objects.none())
+#    else:
+#        form = PostForm()
+#        imageform = PostImagesForm()
 
-        if postForm.is_valid() and formset.is_valid():
-            post_form = postForm.save(commit=False)
-            post_form.user = request.user
-            post_form.save()
 
-            for form in formset.cleaned_data:
-                # this helps to not crash if the user
-                # do not upload all the photos
-                if form:
-                    image = form['image']
-                    photo = PostImages(post=post_form, image=image)
-                    photo.save()
-            # use django messages framework
-            messages.success(request,
-                             "Post has been added!")
-            return redirect('dgram-home')
-        else:
-            print(postForm.errors, formset.errors)
-    else:
-        postForm = PostForm()
-        formset = ImageFormSet(queryset=PostImages.objects.none())
-    return render(request, 'dgram/post_form.html',
-                  {'postForm': postForm, 'formset': formset})
+#    return render(request, 'dgram/post_form.html',
+#                  {'form': form, 'imageform': imageform})
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
-    fields = ['title']
+    fields = ['title', 'tags']
     template_name = 'dgram/post_edit.html'
-    success_url = '/'
 
     def test_func(self):
         post = self.get_object()
