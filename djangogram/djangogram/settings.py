@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -36,6 +40,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'taggit',
     'crispy_forms',
+    'cloudinary',
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -126,8 +132,15 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-MEDIA_ROOT = BASE_DIR.joinpath('media')
-MEDIA_URL = '/media/'
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dfatwprbc',
+    'API_KEY': '246423837591435',
+    'API_SECRET': 'fjJWHynL6bkuIDiU1tXf7ayeQH0',
+}
+
+#MEDIA_ROOT = BASE_DIR.joinpath('media')
+MEDIA_URL = '/dgram/'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
@@ -141,6 +154,11 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dimonchik5490@gmail.com'
 EMAIL_HOST_PASSWORD = 'ivuvjieczvwxgolr'
 
+cloudinary.config(
+  cloud_name = "dfatwprbc",
+  api_key = "246423837591435",
+  api_secret = "fjJWHynL6bkuIDiU1tXf7ayeQH0"
+)
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 

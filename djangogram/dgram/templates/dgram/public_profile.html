@@ -1,10 +1,55 @@
 {% extends 'dgram/base.html' %}
 {% block content %}
-    <p>Common Tags:
-    {% for mt in common_tags %}
-        <a href="#" class="badge badge-success">{{mt}}</a>
-    {% endfor %}
-    </p>
+    <div class="content-section">
+      <div class="media">
+        <img class="rounded-circle account-img" src="{{ user.profile.image.url }}">
+        <div class="media-body">
+          <h2 class="account-heading">{{ user.username }}</h2>
+          {% if profile.name %}
+            <p class="text-secondary">{{ profile.name }}</p>
+          {% endif %}
+          <p class="text-secondary">{{ user.email }}</p>
+          {% if profile.birth_date %}
+            <p class="text-secondary">{{ profile.birth_date }}</p>
+          {% endif %}
+          {% if profile.location %}
+            <p class="text-secondary">{{ profile.location }}</p>
+          {% endif %}
+          <div class="mb-3">
+                <p>Followers: {{ number_of_followers }}</p>
+                {% if user == request.user %}
+                {% else %}
+                {% if is_following %}
+
+                <form method="POST" action="{% url 'remove-follower' profile.pk %}">
+                    {% csrf_token %}
+                    <button class="btn btn-outline-danger" type=submit>UnFollow</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{% url 'add-follower' profile.pk %}">
+                    {% csrf_token %}
+                    <button class="btn btn-outline-success" type=submit>Follow</button>
+                </form>
+                {% endif %}
+                {% endif %}
+
+          </div>
+        </div>
+      </div>
+      {% if profile.bio %}
+        <!-- Section:Biography -->
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card card-block text-xs-left">
+              <h2 class="card-title" style="color:#009688"><i class="fa fa-user fa-fw"></i>Biography</h2>
+              <div style="height: 15px"></div>
+                <p>{{ profile.bio }}
+            </div>
+          </div>
+        </div>
+        <!-- End:Biography -->
+      {% endif %}
+    </div>
     {% for post in posts %}
         <article class="media content-section">
             <img class="rounded-circle article-img" src="{{ post.author.profile.image.url }}">
@@ -44,23 +89,4 @@
             </div>
         </article>
     {% endfor %}
-    {% if is_paginated %}
-        {% if page_obj.has_previous %}
-            <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
-            <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-        {% endif %}
-
-    {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-            <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
-        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
-        {% endif %}
-    {% endfor %}
-
-    {% if page_obj.has_next %}
-        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }">Next</a>
-        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-    {% endif %}
-    {% endif %}
 {% endblock content %}

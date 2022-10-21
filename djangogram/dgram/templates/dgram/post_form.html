@@ -1,6 +1,7 @@
 {% extends "dgram/base.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
+    {% load cloudinary %}
     <div class="content-section">
         <form id="post_form" method="post" action="" enctype="multipart/form-data">
               {% csrf_token %}
@@ -8,10 +9,10 @@
                 <legend class="border-bottom mb-4">Blog Post</legend>
                 {{ form|crispy }}
               </fieldset>
-              {{ imageform.management_form }}
-              {% for form in imageform %}
-                  {{ form }}
-              {% endfor %}
+              <div class="form-group">
+                <label for="post-image">Images</label>
+                <input type="file" name="image" class="form-control-file" id="post-image" multiple>
+              </div>
               <div class="form-group">
                 <button class="btn btn-outline-info" type="submit">Post</button>
               </div>

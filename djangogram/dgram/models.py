@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from taggit.managers import TaggableManager
 from django_extensions.db.fields import AutoSlugField
-from PIL import Image
+from cloudinary.models import CloudinaryField
+#from PIL import Image
 
 class Post(models.Model):
     title = models.CharField(max_length=100)
@@ -27,17 +28,20 @@ class Post(models.Model):
 
 class PostImages(models.Model):
     post = models.ForeignKey(Post, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='post_pics', null=True, blank=True)
+    image = CloudinaryField('image',
+                            folder='dgram/posts/post_pics',
+                            unique_filename=True)
+    #image = models.ImageField(upload_to='post_pics', null=True, blank=True)
 
-    def save(self, *args, **kwargs):
-        super().save()
+    #def save(self, *args, **kwargs):
+    #    super().save()
 
-        img = Image.open(self.image.path)
+    #    img = Image.open(self.image.path)
 
-        if img.height > 1080 or img.width > 1080:
-            output_size = (1080, 1080)
-            img.thumbnail(output_size)
-            img.save(self.image.path)
+    #    if img.height > 1080 or img.width > 1080:
+    #        output_size = (1080, 1080)
+    #        img.thumbnail(output_size)
+    #        img.save(self.image.path)
 
 
 

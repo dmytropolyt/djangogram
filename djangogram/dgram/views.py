@@ -1,9 +1,10 @@
-from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from .models import Post, PostImages
 from .forms import PostForm, PostImagesForm
+from users.models import Profile
 from taggit.models import Tag
 
 
@@ -17,7 +18,6 @@ class PostListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['common_tags'] = Post.tags.most_common()[:4]
-        #context['image_list'] = Post.images
         return context
 
 class PostDetailView(LoginRequiredMixin, DetailView):
@@ -25,7 +25,7 @@ class PostDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['image_list'] = PostImages.objects.filter(post=self.kwargs['pk']) #PostImages.objects.all()
+        context['image_list'] = PostImages.objects.filter(post=self.kwargs['pk'])
         return context
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -51,35 +51,6 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         context['imageform'] = PostImagesForm()
         return context
 
-
-#@login_required
-#def addPostView(request):
-    #ImageFormSet = modelformset_factory(PostImages,
-    #                                    form=PostImagesForm, extra=10)
-    # 'extra' means the number of photos that you can upload   ^
-#    if request.method == 'POST':
-#        form = PostForm(request.POST)
-#        files = request.FILES.getlist("image")
-#        if form.is_valid():
-#            f = form.save(commit=False)
-#            f.author = request.user
-#            f.save()
-#            f.tags.add(*form.cleaned_data['tags'])
-#            for i in files:
-#                PostImages.objects.create(post=f, image=i)
-#            messages.success(request,
-#                             "Post has been added!")
-#            return HttpResponseRedirect('/')
-
-#    else:
-#        form = PostForm()
-#        imageform = PostImagesForm()
-
-
-#    return render(request, 'dgram/post_form.html',
-#                  {'form': form, 'imageform': imageform})
-
-
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     fields = ['title', 'tags']
@@ -101,6 +72,32 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         if self.request.user == post.author:
             return True
         return False
+
+class PublicProfileView(LoginRequiredMixin, View):
+    def get(self, request, pk, *args, **kwargs):
+        profile = Profile.objects.get(pk=pk)
+        user = profile.user
+        posts = Post.objects.filter(author=user).order_by('-date_posted')
+        followers = profile.followers.all()
+        is_following = False
+
+        for follower in followers:
+            if follower == request.user:
+                is_following = True
+                break
+            else:
+                is_following = False
+
+        number_of_followers = len(followers)
+
+        context = {
+            'user': user,
+            'profile': profile,
+            'posts': posts,
+            'is_following': is_following,
+            'number_of_followers': number_of_followers
+        }
+        return render(request, 'dgram/public_profile.html', context)
 
 class AddLike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
@@ -161,6 +158,18 @@ class AddDislike(LoginRequiredMixin, View):
 
         next = request.POST.get('next', '/')
         return HttpResponseRedirect(next)
+
+class AddFollower(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        profile = Profile.objects.get(pk=pk)
+        profile.followers.add(request.user)
+        return redirect('public-profile', pk=profile.pk)
+
+class RemoveFollower(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        profile = Profile.objects.get(pk=pk)
+        profile.followers.remove(request.user)
+        return redirect('public-profile', pk=profile.pk)
 
 def tagged(request, slug):
     tag = get_object_or_404(Tag, slug=slug)

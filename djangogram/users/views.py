@@ -10,6 +10,7 @@ from django.core.mail import EmailMessage
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
 from .tokens import account_activation_token
 
+
 def activate(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -84,6 +85,9 @@ def profile(request):
         'p_form': p_form
     }
     return render(request, 'users/profile.html', context)
+
+
+
 
 
 
