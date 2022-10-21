@@ -107,13 +107,13 @@ class PublicProfileView(LoginRequiredMixin, View):
 class AddLike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         post = Post.objects.get(pk=pk)
-        likes = post.likes.all()
-        dislikes = post.dislikes.all()
+        likes = post.likes.filter(username=request.user.username).exists()
+        dislikes = post.dislikes.filter(username=request.user.username).exists()
 
-        if request.user in dislikes:
+        if dislikes:
             post.dislikes.remove(request.user)
 
-        if request.user in likes:
+        if likes:
             post.likes.remove(request.user)
         else:
             post.likes.add(request.user)
@@ -125,13 +125,13 @@ class AddLike(LoginRequiredMixin, View):
 class AddDislike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         post = Post.objects.get(pk=pk)
-        likes = post.likes.all()
-        dislikes = post.dislikes.all()
+        likes = post.likes.filter(username=request.user.username).exists()
+        dislikes = post.dislikes.filter(username=request.user.username).exists()
 
-        if request.user in likes:
+        if likes:
             post.likes.remove(request.user)
 
-        if request.user in dislikes:
+        if dislikes:
             post.dislikes.remove(request.user)
         else:
             post.dislikes.add(request.user)
