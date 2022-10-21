@@ -20,6 +20,7 @@ class PostListView(ListView):
         context['common_tags'] = Post.tags.most_common()[:4]
         return context
 
+
 class PostDetailView(LoginRequiredMixin, DetailView):
     model = Post
 
@@ -28,8 +29,9 @@ class PostDetailView(LoginRequiredMixin, DetailView):
         context['image_list'] = PostImages.objects.filter(post=self.kwargs['pk'])
         return context
 
+
 class PostCreateView(LoginRequiredMixin, CreateView):
-    #model = Post
+    # model = Post
     form_class = PostForm
     template_name = 'dgram/post_form.html'
     success_url = '/'
@@ -50,6 +52,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['imageform'] = PostImagesForm()
         return context
+
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
@@ -72,6 +75,7 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         if self.request.user == post.author:
             return True
         return False
+
 
 class PublicProfileView(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
@@ -99,65 +103,42 @@ class PublicProfileView(LoginRequiredMixin, View):
         }
         return render(request, 'dgram/public_profile.html', context)
 
+
 class AddLike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         post = Post.objects.get(pk=pk)
+        likes = post.likes.all()
+        dislikes = post.dislikes.all()
 
-        is_dislike = False
-
-        for dislike in post.dislikes.all():
-            if dislike == request.user:
-                is_dislike = True
-                break
-
-        if is_dislike:
+        if request.user in dislikes:
             post.dislikes.remove(request.user)
 
-        is_like = False
-
-        for like in post.likes.all():
-            if like == request.user:
-                is_like = True
-                break
-
-        if not is_like:
-            post.likes.add(request.user)
-
-        if is_like:
+        if request.user in likes:
             post.likes.remove(request.user)
+        else:
+            post.likes.add(request.user)
 
         next = request.POST.get('next', '/')
         return HttpResponseRedirect(next)
+
 
 class AddDislike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         post = Post.objects.get(pk=pk)
+        likes = post.likes.all()
+        dislikes = post.dislikes.all()
 
-        is_like = False
-
-        for like in post.likes.all():
-            if like == request.user:
-                is_like = True
-                break
-
-        if is_like:
+        if request.user in likes:
             post.likes.remove(request.user)
 
-        is_dislike = False
-
-        for dislike in post.dislikes.all():
-            if dislike == request.user:
-                is_dislike = True
-                break
-
-        if not is_dislike:
-            post.dislikes.add(request.user)
-
-        if is_dislike:
+        if request.user in dislikes:
             post.dislikes.remove(request.user)
+        else:
+            post.dislikes.add(request.user)
 
         next = request.POST.get('next', '/')
         return HttpResponseRedirect(next)
+
 
 class AddFollower(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
@@ -165,11 +146,13 @@ class AddFollower(LoginRequiredMixin, View):
         profile.followers.add(request.user)
         return redirect('public-profile', pk=profile.pk)
 
+
 class RemoveFollower(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         profile = Profile.objects.get(pk=pk)
         profile.followers.remove(request.user)
         return redirect('public-profile', pk=profile.pk)
+
 
 def tagged(request, slug):
     tag = get_object_or_404(Tag, slug=slug)
@@ -182,6 +165,6 @@ def tagged(request, slug):
     }
     return render(request, 'dgram/home.html', context)
 
+
 def about(request):
     return render(request, 'dgram/about.html', {'title': 'about'})
-
