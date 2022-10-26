@@ -67,14 +67,6 @@ def register(request):
 
     return render(request, 'users/register.html', {'form': form})
 
-def validate_username(request):
-    """Check username availability"""
-    username = request.GET.get('username', None)
-    response = {
-        'is_taken': User.objects.filter(username__iexact=username).exists()
-    }
-    return JsonResponse(response)
-
 
 
 @login_required
