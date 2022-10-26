@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, redirect
+from django.http import JsonResponse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
@@ -106,20 +107,24 @@ class PublicProfileView(LoginRequiredMixin, View):
 
 class AddLike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
-        post = Post.objects.get(pk=pk)
-        likes = post.likes.filter(username=request.user.username).exists()
-        dislikes = post.dislikes.filter(username=request.user.username).exists()
+        if request.POST.get('action') == 'post':
+            post = Post.objects.get(pk=pk)
+            likes = post.likes.filter(username=request.user.username).exists()
+            dislikes = post.dislikes.filter(username=request.user.username).exists()
+            result = 0
+            if dislikes:
+                post.dislikes.remove(request.user)
 
-        if dislikes:
-            post.dislikes.remove(request.user)
+            if likes:
+                post.likes.remove(request.user)
+                result = post.likes.all().count()
+            else:
+                post.likes.add(request.user)
+                result = post.likes.all().count()
 
-        if likes:
-            post.likes.remove(request.user)
-        else:
-            post.likes.add(request.user)
-
-        next = request.POST.get('next', '/')
-        return HttpResponseRedirect(next)
+            #next = request.POST.get('next', '/')
+            #return HttpResponseRedirect(next)
+            return JsonResponse({'result': result})
 
 
 class AddDislike(LoginRequiredMixin, View):
@@ -127,17 +132,22 @@ class AddDislike(LoginRequiredMixin, View):
         post = Post.objects.get(pk=pk)
         likes = post.likes.filter(username=request.user.username).exists()
         dislikes = post.dislikes.filter(username=request.user.username).exists()
+        result = 0
 
         if likes:
             post.likes.remove(request.user)
 
         if dislikes:
             post.dislikes.remove(request.user)
+            result = post.dislikes.all().count()
         else:
             post.dislikes.add(request.user)
+            result = post.dislikes.all().count()
 
-        next = request.POST.get('next', '/')
-        return HttpResponseRedirect(next)
+       # next = request.POST.get('next', '/')
+        #return HttpResponseRedirect(next)
+        return JsonResponse({'result': result})
+
 
 
 class AddFollower(LoginRequiredMixin, View):

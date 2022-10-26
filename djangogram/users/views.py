@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -65,6 +66,16 @@ def register(request):
         form = UserRegisterForm()
 
     return render(request, 'users/register.html', {'form': form})
+
+def validate_username(request):
+    """Check username availability"""
+    username = request.GET.get('username', None)
+    response = {
+        'is_taken': User.objects.filter(username__iexact=username).exists()
+    }
+    return JsonResponse(response)
+
+
 
 @login_required
 def profile(request):
