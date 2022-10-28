@@ -1,0 +1,40 @@
+<script>
+$('.button-like').on('click', function () {
+    $.ajax({
+        type: 'POST',
+        url: `/post/${$(this).data('post-id')}/like`,
+        data: {
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success: function (json) {
+            document.getElementById("like_count-"+json['id']).innerHTML = json['likes'];
+            document.getElementById("dislike_count-"+json['id']).innerHTML = json['dislikes'];
+
+        },
+        error: function (xhr, errmsg, err) {
+
+        }
+    })
+});
+</script>
+<script>
+$('.button-dislike').on('click', function () {
+    $.ajax({
+        type: 'POST',
+        url: `/post/${$(this).data('post-id')}/dislike`,
+        data: {
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success: function (json) {
+            document.getElementById("dislike_count-"+json['id']).innerHTML = json['dislikes'];
+            document.getElementById("like_count-"+json['id']).innerHTML = json['likes'];
+
+        },
+        error: function (xhr, errmsg, err) {
+
+        }
+    })
+});
+</script>
