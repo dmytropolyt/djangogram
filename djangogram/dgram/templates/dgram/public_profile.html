@@ -16,21 +16,17 @@
             <p class="text-secondary">{{ profile.location }}</p>
           {% endif %}
           <div class="mb-3">
-                <p>Followers: {{ number_of_followers }}</p>
-                {% if user == request.user %}
-                {% else %}
-                {% if is_following %}
+                <p>Posts: {{ posts.count }}</p>
+                <p>Followers: <span id="followers_count">{{ number_of_followers }}</span></p>
 
-                <form method="POST" action="{% url 'remove-follower' profile.pk %}">
-                    {% csrf_token %}
-                    <button class="btn btn-outline-danger" type=submit>UnFollow</button>
-                </form>
-                {% else %}
-                <form method="POST" action="{% url 'add-follower' profile.pk %}">
-                    {% csrf_token %}
-                    <button class="btn btn-outline-success" type=submit>Follow</button>
-                </form>
-                {% endif %}
+                {% if user != request.user %}
+
+                   {% csrf_token %}
+                    <button
+                            class="btn btn-outline-primary button-follow"
+                            data-profile-id="{{ profile.pk }}"
+                            type=submit><span id="is_following">{% if is_following %} UnFollow {%else%} Follow {% endif %}</span></button>
+
                 {% endif %}
 
           </div>
@@ -59,34 +55,61 @@
                   <small class="text-muted">{{ post.date_posted|date:"d F, Y" }}</small>
                 </div>
                 <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
+                <div class="row">
                 {% for p in post.images.all %}
-                    <div class="media">
-                      <img class="img-thumbnail" src="{{ p.image.url }}" alt="" width="300px" height="300px"> <!-- width="300px" height="300px" -->
-                      <a href="#!">
-                        <div class="mask rgba-white-slight"></div>
-                      </a>
+                    <div class="col-4">
+                        <img style="height: 300px; weight: 300px; object-fit: cover;" src="{{ p.image.url }}" class="img-thumbnail post-image">
                     </div>
                 {% endfor %}
+                </div>
                 <div style="display:flex">
                     {% for tag in post.tags.all %}
                         <a href="{% url 'tagged' tag.slug %}" class="mr-1 badge badge-info">#{{ tag }}</a>
                     {% endfor %}
                 </div>
                 <div class="d-flex flex-row">
-                    <form method="POST" action="{% url 'like' post.pk %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.path }}">
-                        <button style="background-color: transparent; border: none; box-shadow: none;" type="submit"><i class="bi bi-hand-thumbs-up"></i> <span>{{ post.likes.all.count }}</span></button>
-                    </form>
 
-                    <form method="POST" action="{% url 'dislike' post.pk %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.path }}">
-                        <button style="background-color: transparent; border: none; box-shadow: none;" type="submit"><i class="bi bi-hand-thumbs-down"></i> <span>{{ post.dislikes.all.count }}</span></button>
-                    </form>
+                    <button
+                            style="background-color: transparent; border: none; box-shadow: none;"
+                            id="like-button-{{ post.pk }}"
+                            class="button-like"
+                            data-post-id="{{ post.pk }}"
+                    ><i class="bi bi-hand-thumbs-up"></i> <span id="like_count-{{ post.pk }}">{{ post.likes.all.count }}</span></button>
+                    {% csrf_token %}
+                    <button
+                            style="background-color: transparent; border: none; box-shadow: none;"
+                            id="dislike-button-{{ post.pk }}"
+                            class="button-dislike"
+                            data-post-id="{{ post.pk }}"
+                    ><i class="bi bi-hand-thumbs-down"></i> <span id="dislike_count-{{ post.pk }}">{{ post.dislikes.all.count }}</span></button>
+
                 </div>
                 </div>
             </div>
         </article>
     {% endfor %}
+
+<script>
+$('.button-follow').on('click', function () {
+    $.ajax({
+        type: 'POST',
+        url: `/profile/${$(this).data('profile-id')}/follow`,
+        data: {
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success: function (json) {
+            document.getElementById("followers_count").innerHTML = json['result'];
+            document.getElementById("is_following").innerHTML = json['is_following'];
+
+        },
+        error: function (xhr, errmsg, err) {
+
+        }
+    })
+    $(".button-follow").button('toggle');
+});
+</script>
+{% include 'dgram/ajax_like_dislike.html' %}
+
 {% endblock content %}

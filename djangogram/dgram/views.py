@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.db.models import Subquery
 from .models import Post, PostImages
 from .forms import PostForm, PostImagesForm
 from users.models import Profile
@@ -78,6 +80,19 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return False
 
 
+class PostFollowingListView(LoginRequiredMixin, ListView):
+    model = Post
+    template_name = 'dgram/home.html'
+    context_object_name = 'posts'
+    ordering = ['-date_posted']
+    paginate_by = 5
+
+    def get_queryset(self):
+        following_profiles = Profile.objects.filter(followers=self.request.user).all()
+
+        return Post.objects.filter(author_id__in=Subquery(following_profiles.values('user_id')))
+
+
 class PublicProfileView(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
         profile = Profile.objects.get(pk=pk)
@@ -109,59 +124,63 @@ class AddLike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         if request.POST.get('action') == 'post':
             post = Post.objects.get(pk=pk)
-            likes = post.likes.filter(username=request.user.username).exists()
-            dislikes = post.dislikes.filter(username=request.user.username).exists()
-            result = 0
-            if dislikes:
-                post.dislikes.remove(request.user)
+            like = post.likes.filter(username=request.user.username).exists()
+            dislike = post.dislikes.filter(username=request.user.username).exists()
 
-            if likes:
+            dislikes = post.dislikes.all().count()
+            if dislike:
+                post.dislikes.remove(request.user)
+                dislikes = post.dislikes.all().count()
+
+            if like:
                 post.likes.remove(request.user)
-                result = post.likes.all().count()
+                likes = post.likes.all().count()
             else:
                 post.likes.add(request.user)
-                result = post.likes.all().count()
+                likes = post.likes.all().count()
 
-            #next = request.POST.get('next', '/')
-            #return HttpResponseRedirect(next)
-            return JsonResponse({'result': result})
+            return JsonResponse({'id': str(pk), 'likes': likes, 'dislikes': dislikes})
 
 
 class AddDislike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
-        post = Post.objects.get(pk=pk)
-        likes = post.likes.filter(username=request.user.username).exists()
-        dislikes = post.dislikes.filter(username=request.user.username).exists()
-        result = 0
+        if request.POST.get('action') == 'post':
+            post = Post.objects.get(pk=pk)
+            like = post.likes.filter(username=request.user.username).exists()
+            dislike = post.dislikes.filter(username=request.user.username).exists()
 
-        if likes:
-            post.likes.remove(request.user)
+            likes = post.likes.all().count()
+            if like:
+                post.likes.remove(request.user)
+                likes = post.likes.all().count()
 
-        if dislikes:
-            post.dislikes.remove(request.user)
-            result = post.dislikes.all().count()
-        else:
-            post.dislikes.add(request.user)
-            result = post.dislikes.all().count()
+            if dislike:
+                post.dislikes.remove(request.user)
+                dislikes = post.dislikes.all().count()
+            else:
+                post.dislikes.add(request.user)
+                dislikes = post.dislikes.all().count()
 
-       # next = request.POST.get('next', '/')
-        #return HttpResponseRedirect(next)
-        return JsonResponse({'result': result})
-
+            return JsonResponse({'id': str(pk), 'dislikes': dislikes, 'likes': likes})
 
 
 class AddFollower(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
-        profile = Profile.objects.get(pk=pk)
-        profile.followers.add(request.user)
-        return redirect('public-profile', pk=profile.pk)
+        if request.POST.get('action') == 'post':
+            profile = Profile.objects.get(pk=pk)
+            is_following_boolean = profile.followers.filter(username=request.user.username).exists()
+            is_following = 'Unfollow'
 
+            if is_following_boolean:
+                profile.followers.remove(request.user)
+                result = profile.followers.all().count()
+                is_following = 'Follow'
+            else:
+                profile.followers.add(request.user)
+                result = profile.followers.all().count()
 
-class RemoveFollower(LoginRequiredMixin, View):
-    def post(self, request, pk, *args, **kwargs):
-        profile = Profile.objects.get(pk=pk)
-        profile.followers.remove(request.user)
-        return redirect('public-profile', pk=profile.pk)
+            # return redirect('public-profile', pk=profile.pk)
+            return JsonResponse({'result': result, 'is_following': is_following})
 
 
 def tagged(request, slug):

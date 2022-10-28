@@ -51,19 +51,24 @@
                 {% endfor %}
             </div>
             <div class="d-flex flex-row">
-                <form method="POST" action="{% url 'like' object.pk %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.path }}">
-                    <button style="background-color: transparent; border: none; box-shadow: none;" type="submit"><i class="bi bi-hand-thumbs-up"></i> <span>{{ object.likes.all.count }}</span></button>
-                </form>
 
-                <form method="POST" action="{% url 'dislike' object.pk %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.path }}">
-                    <button style="background-color: transparent; border: none; box-shadow: none;" type="submit"><i class="bi bi-hand-thumbs-down"></i> <span>{{ object.dislikes.all.count }}</span></button>
-                </form>
+                <button
+                        style="background-color: transparent; border: none; box-shadow: none;"
+                        id="like-button-{{ object.pk }}"
+                        class="button-like"
+                        data-post-id="{{ object.pk }}"
+                ><i class="bi bi-hand-thumbs-up"></i> <span id="like_count-{{ object.pk }}">{{ object.likes.all.count }}</span></button>
+                {% csrf_token %}
+                <button
+                        style="background-color: transparent; border: none; box-shadow: none;"
+                        id="dislike-button-{{ object.pk }}"
+                        class="button-dislike"
+                        data-post-id="{{ object.pk }}"
+                ><i class="bi bi-hand-thumbs-down"></i> <span id="dislike_count-{{ object.pk }}">{{ object.dislikes.all.count }}</span></button>
             </div>
         </div>
     </article>
+
+{% include 'dgram/ajax_like_dislike.html' %}
 
 {% endblock content %}
