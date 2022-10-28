@@ -35,6 +35,13 @@
                     </div>
                     <!-- Navbar Right Side -->
                     <div class="navbar-nav">
+                        <form class="d-flex" method="POST" action="{% url 'search-profile' %}">
+                            {% csrf_token %}
+                            <input
+                                    class="form-control me-2"
+                                    type="search" placeholder="Search Profile" aria-label="search" name="searchprofile">
+                            <button class="btn btn-outline-secondary" type="submit">Search</button>
+                        </form>
                         {% if user.is_authenticated %}
                             <a class="nav-item nav-link" href="{% url 'post-create' %}">Add Post</a>
                             <a class="nav-item nav-link" href="{% url 'public-profile' user.profile.pk %}">Profile</a>
