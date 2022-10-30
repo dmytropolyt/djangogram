@@ -3,8 +3,8 @@ from django.http import JsonResponse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.db.models import Subquery
+from django.contrib.auth.models import User
 from .models import Post, PostImages
 from .forms import PostForm, PostImagesForm
 from users.models import Profile
@@ -118,6 +118,16 @@ class PublicProfileView(LoginRequiredMixin, View):
             'number_of_followers': number_of_followers
         }
         return render(request, 'dgram/public_profile.html', context)
+
+class SearchProfileView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        searched = request.POST.get('searchprofile')
+        if searched:
+            profiles = User.objects.filter(username__contains=searched).all()
+            return render(request, 'dgram/search_profile.html', {'profiles': profiles, 'user_searched': searched})
+        else:
+            return render(request, 'dgram/search_profile.html', {'user_searched': searched})
+
 
 
 class AddLike(LoginRequiredMixin, View):

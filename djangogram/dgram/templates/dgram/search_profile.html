@@ -1,0 +1,13 @@
+{% extends "dgram/base.html" %}
+{% block content %}
+    <center>
+    {% if profiles %}
+        <h1>You searched for user with username {{ user_searched }}</h1>
+        {% for profile in profiles %}
+            <a href="{% url 'public-profile' profile.profile.pk %}">@{{ profile.username }}</a>
+        {% endfor %}
+    {% else %}
+        <h1>No results for user with username {{ user_searched }}</h1>
+    {% endif %}
+    </center>
+{% endblock content %}
