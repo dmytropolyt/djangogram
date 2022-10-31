@@ -119,6 +119,7 @@ class PublicProfileView(LoginRequiredMixin, View):
         }
         return render(request, 'dgram/public_profile.html', context)
 
+
 class SearchProfileView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         searched = request.POST.get('searchprofile')
@@ -127,7 +128,6 @@ class SearchProfileView(LoginRequiredMixin, View):
             return render(request, 'dgram/search_profile.html', {'profiles': profiles, 'user_searched': searched})
         else:
             return render(request, 'dgram/search_profile.html', {'user_searched': searched})
-
 
 
 class AddLike(LoginRequiredMixin, View):
