@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'social_django',
+    'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -142,12 +143,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = '/static/'
-#STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-#STATICFILES_DIRS = [
-#    BASE_DIR / 'static'
-#]
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dfatwprbc',
