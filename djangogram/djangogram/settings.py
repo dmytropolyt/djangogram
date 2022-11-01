@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'social_django',
-    'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
