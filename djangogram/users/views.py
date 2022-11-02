@@ -42,7 +42,7 @@ def activateEmail(request, user, to_email):
     })
     email = EmailMessage(mail_subject, message, to=[to_email])
     if email.send():
-        messages.success(request, f'Dear <b>{user}<b>, please go to your email <b>{to_email}<b> inbox and click on \
+        messages.success(request, f'Dear <br>{user}<br>, please go to your email <br>{to_email}<br> inbox and click on \
                 received activation link to confirm and complete registration. <b>Note:<b> Check your spam folder.')
     else:
         messages.error(request, f'Problem sending email to {to_email}, check if you typed if correctly')
