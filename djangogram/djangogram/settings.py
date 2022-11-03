@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'cloudinary',
     'cloudinary_storage',
+    'social_django',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'djangogram.urls'
@@ -73,6 +75,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect'
             ],
         },
     },
@@ -80,6 +84,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'djangogram.wsgi.application'
 
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.github.GithubOAuth2', # github <----
+    'social_core.backends.google.GoogleOAuth2',  # google <----
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_GITHUB_KEY = 'ea41418473293242f4c9'
+SOCIAL_AUTH_GITHUB_SECRET = '61876d19f4c78bb0ae1bf3ba6d54acb79cbf45ec'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '838669987746-fbcvt61v0b5j48uuv8d7asaf6jq6krug.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -95,6 +109,7 @@ DATABASES = {
     }
 }
 
+SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -131,6 +146,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dfatwprbc',
@@ -163,3 +183,7 @@ cloudinary.config(
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configure Django App for Heroku.
+import django_on_heroku
+django_on_heroku.settings(locals())
