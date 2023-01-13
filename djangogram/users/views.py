@@ -31,7 +31,8 @@ def activate(request, uidb64, token):
 
     return redirect('dgram-home')
 
-def activateEmail(request, user, to_email):
+
+def activate_email(request, user, to_email):
     mail_subject = "Activate your user account."
     message = render_to_string("users/template_activate_account.html", {
         'user': user.username,
@@ -47,6 +48,7 @@ def activateEmail(request, user, to_email):
     else:
         messages.error(request, f'Problem sending email to {to_email}, check if you typed if correctly')
 
+
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
@@ -54,9 +56,9 @@ def register(request):
             user = form.save(commit=False)
             user.is_active = False
             user.save()
-            activateEmail(request, user, form.cleaned_data.get('email'))
+            activate_email(request, user, form.cleaned_data.get('email'))
 
-            #login(request, user)
+            # login(request, user)
             return redirect('dgram-home')
         else:
             for error in list(form.errors.values()):
@@ -66,7 +68,6 @@ def register(request):
         form = UserRegisterForm()
 
     return render(request, 'users/register.html', {'form': form})
-
 
 
 @login_required
@@ -88,9 +89,3 @@ def profile(request):
         'p_form': p_form
     }
     return render(request, 'users/profile.html', context)
-
-
-
-
-
-

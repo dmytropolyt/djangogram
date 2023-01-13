@@ -14,9 +14,3 @@ class PostImagesForm(forms.ModelForm):
     class Meta:
         model = PostImages
         fields = ('image',)
-
-
-    # forms.ImageField(
-    # label="Image",
-    # widget=forms.ClearableFileInput(attrs={"multiple": True}),
-    # )

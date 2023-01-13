@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=-mk&qmj_l8z-=xm_3smbie78_pnxe^gw@u0qhkmcp$l)z-*8u'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -90,10 +90,10 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-SOCIAL_AUTH_GITHUB_KEY = 'ea41418473293242f4c9'
-SOCIAL_AUTH_GITHUB_SECRET = '61876d19f4c78bb0ae1bf3ba6d54acb79cbf45ec'
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '838669987746-fbcvt61v0b5j48uuv8d7asaf6jq6krug.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
+SOCIAL_AUTH_GITHUB_KEY = os.environ.get('SOCIAL_AUTH_GITHUB_KEY')
+SOCIAL_AUTH_GITHUB_SECRET = os.environ.get('SOCIAL_AUTH_GITHUB_SECRET')
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -101,9 +101,9 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'djangogram',
-        'USER': 'postgres',
-        'PASSWORD': '121212q',
+        'NAME': os.environ.get('SQL_DATABASE'),
+        'USER': os.environ.get('SQL_USER'),
+        'PASSWORD': os.environ.get('SQL_PASSWORD'),
         'HOST': '127.0.0.1',
         'PORT': '5432'
     }
@@ -153,9 +153,9 @@ STATICFILES_DIRS = [
 ]
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dfatwprbc',
-    'API_KEY': '246423837591435',
-    'API_SECRET': 'fjJWHynL6bkuIDiU1tXf7ayeQH0',
+    'CLOUD_NAME': os.environ.get('CLOUD_NAME'),
+    'API_KEY': os.environ.get('API_KEY'),
+    'API_SECRET': os.environ.get('API_SECRET'),
 }
 
 #MEDIA_ROOT = BASE_DIR.joinpath('media')
@@ -171,13 +171,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'dimonchik5490@gmail.com'
-EMAIL_HOST_PASSWORD = 'ivuvjieczvwxgolr'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 cloudinary.config(
-  cloud_name = "dfatwprbc",
-  api_key = "246423837591435",
-  api_secret = "fjJWHynL6bkuIDiU1tXf7ayeQH0"
+  cloud_name = os.environ.get('CLOUD_NAME'),
+  api_key = os.environ.get('API_KEY'),
+  api_secret = os.environ.get('API_SECRET')
 )
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
